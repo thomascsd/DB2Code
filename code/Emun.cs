@@ -5,7 +5,6 @@ namespace DB2Code
     /// </summary>
     public enum AccessDataBaseType
     {
-        DB2 = 1,
         MSSQL = 2,
         Access = 3,
         ODBC = 4
@@ -14,7 +13,7 @@ namespace DB2Code
     /// <summary>
     /// 程式語言的類型
     /// </summary>
-    public enum languageType
+    public enum LanguageType
     {
         /// <summary>
         /// C#

@@ -11,7 +11,7 @@ namespace DB2Code
 {
     public partial class CodeBase
     {
-        #region"Field And Property"
+        #region Field And Property
         protected string mConstring;
         protected string mTableName;
         protected List<CodeMemberMethod> mMemberMethods;
@@ -48,7 +48,7 @@ namespace DB2Code
 
         #endregion
 
-        #region"建構式"
+        #region 建構式
 
         /// <summary>
         /// 建構式
@@ -114,7 +114,7 @@ namespace DB2Code
 
         #endregion
 
-        #region"產生屬性"
+        #region 產生屬性
 
         /// <summary>
         /// 初始化Class
@@ -171,7 +171,7 @@ namespace DB2Code
 
         #endregion
 
-        #region"新增或修改的產生"
+        #region 新增或修改的產生
 
         public void MethodContent(MethodType methodType)
         {
@@ -205,7 +205,7 @@ namespace DB2Code
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public string GenerateClassCode(languageType type)
+        public string GenerateClassCode(LanguageType type)
         {
             StringBuilder sb = new StringBuilder();
             CodeDomProvider provider;
@@ -213,12 +213,12 @@ namespace DB2Code
 
             switch (type)
             {
-                case languageType.CSharp:
+                case LanguageType.CSharp:
                     provider = new CSharpCodeProvider();
                     code = this.GetCodeString(provider, this.mCodeClass);
                     break;
 
-                case languageType.VB:
+                case LanguageType.VB:
                     provider = new VBCodeProvider();
                     code = this.GetCodeString(provider, this.mCodeClass);
                     break;
@@ -235,7 +235,7 @@ namespace DB2Code
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public string GenerateMethodCode(languageType type)
+        public string GenerateMethodCode(LanguageType type)
         {
             StringBuilder sb = new StringBuilder();
             CodeDomProvider provider;
@@ -244,12 +244,12 @@ namespace DB2Code
             {
                 switch (type)
                 {
-                    case languageType.CSharp:
+                    case LanguageType.CSharp:
                         provider = new CSharpCodeProvider();
                         sb.AppendLine(this.GetCodeString(provider, method));
                         break;
 
-                    case languageType.VB:
+                    case LanguageType.VB:
                         provider = new VBCodeProvider();
                         sb.AppendLine(this.GetCodeString(provider, method));
                         break;

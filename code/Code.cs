@@ -1,23 +1,6 @@
 namespace DB2Code
 {
     /// <summary>
-    /// DB2
-    /// </summary>
-    public class CodeDB2 : CodeBase
-    {
-        public CodeDB2(string constring, string tableName, string schemaKeyName, string[] keyColumNames)
-            : base(constring, tableName, schemaKeyName, "iDB2Command", "iDB2DataReader",
-                   keyColumNames, AccessDataBaseType.DB2)
-        {
-        }
-
-        public CodeDB2(string tableName, string schemaKeyName, string[] keyColumNames)
-            : base(tableName, schemaKeyName, "iDB2Command", "iDB2DataReader", keyColumNames,
-                    AccessDataBaseType.DB2)
-        { }
-    }
-
-    /// <summary>
     /// MsSql
     /// </summary>
     public class CodeMSSQL : CodeBase

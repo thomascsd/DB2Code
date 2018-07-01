@@ -269,15 +269,7 @@ namespace DB2Code
             //新增
             foreach (DataRow row in this.mOptions.DataTable.Rows)
             {
-                if (this.mOptions.DataBaseType == AccessDataBaseType.DB2)
-                {
-                    codeAssign = this.GetCodeAssign(row);
-                    memberMethod.Statements.Add(codeAssign);
-                }
-                else
-                {
-                    memberMethod.Statements.Add(this.GetMethod(row));
-                }
+                memberMethod.Statements.Add(this.GetMethod(row));
             }
 
             memberMethod.Statements.Add(new CodeMethodInvokeExpression(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon"), "Open", new CodeExpression[] { }));
@@ -362,15 +354,7 @@ namespace DB2Code
                 //不是pk的欄位
                 if (names.Contains(columnName))
                 {
-                    if (this.mOptions.DataBaseType == AccessDataBaseType.DB2)
-                    {
-                        codeAssign = this.GetCodeAssign(row);
-                        memberMethod.Statements.Add(codeAssign);
-                    }
-                    else
-                    {
-                        memberMethod.Statements.Add(this.GetMethod(row));
-                    }
+                    memberMethod.Statements.Add(this.GetMethod(row));
                 }
             }
 
@@ -380,15 +364,7 @@ namespace DB2Code
                 //是主索引pk的欄位
                 if (keys.Contains(columnName))
                 {
-                    if (this.mOptions.DataBaseType == AccessDataBaseType.DB2)
-                    {
-                        codeAssign = this.GetCodeAssign(row);
-                        memberMethod.Statements.Add(codeAssign);
-                    }
-                    else
-                    {
-                        memberMethod.Statements.Add(this.GetMethod(row));
-                    }
+                    memberMethod.Statements.Add(this.GetMethod(row));
                 }
             }
 
@@ -458,10 +434,6 @@ namespace DB2Code
 
             switch (this.mOptions.DataBaseType)
             {
-                case AccessDataBaseType.DB2:
-                    de = new DB2DataType();
-                    break;
-
                 case AccessDataBaseType.MSSQL:
                     de = new MSSQLDataType();
                     break;

@@ -25,10 +25,10 @@ namespace DB2Code
             switch (cbxLang.SelectedItem.ToString())
             {
                 case "C#":
-                    code = this.cd.GenerateClassCode(languageType.CSharp);
+                    code = this.cd.GenerateClassCode(LanguageType.CSharp);
                     break;
                 case "VB":
-                    code = this.cd.GenerateClassCode(languageType.VB);
+                    code = this.cd.GenerateClassCode(LanguageType.VB);
                     break;
                 default:
                     break;

@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using System.IO;
 
 namespace DB2Code
 {
@@ -33,7 +31,6 @@ namespace DB2Code
             {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
         private void WriteHistoryList()
@@ -73,7 +70,7 @@ namespace DB2Code
             }
 
             //比對所選擇的ColumnName與DataTable中ColumnName是否相同
-            //相同的話，用List.Add來加入DataType及IsKeyColumn      
+            //相同的話，用List.Add來加入DataType及IsKeyColumn
             foreach (DataRow row in this.Dt.Rows)
             {
                 foreach (string name in columnName)
@@ -86,7 +83,6 @@ namespace DB2Code
                 }
             }
 
-
             //產生DataTable
             dt = this.CreateDataTable(columnName, dataType, IsKey);
 
@@ -96,10 +92,11 @@ namespace DB2Code
             switch (cbxLang.SelectedItem.ToString())
             {
                 case "C#":
-                    ret = this.Cd.GenerateMethodCode(languageType.CSharp);
+                    ret = this.Cd.GenerateMethodCode(LanguageType.CSharp);
                     break;
+
                 case "VB":
-                    ret = this.Cd.GenerateMethodCode(languageType.VB);
+                    ret = this.Cd.GenerateMethodCode(LanguageType.VB);
                     break;
             }
             txtContent.Text = ret;
@@ -173,19 +170,17 @@ namespace DB2Code
 
             switch (cbDbType.SelectedItem.ToString())
             {
-                case "DB2":
-                    this.Cd = new CodeDB2(constring, tableName, "IsKeyColumn", keys.ToArray());
-                    break;
                 case "MSSQL":
                     this.Cd = new CodeMSSQL(constring, tableName, "IsKeyColumn", keys.ToArray());
                     break;
+
                 case "Access":
                     this.Cd = new CodeAccess(constring, tableName, "IsKeyColumn", keys.ToArray());
                     break;
+
                 default:
                     break;
             }
-
         }
 
         /// <summary>
@@ -208,12 +203,15 @@ namespace DB2Code
                     case "DB2":
                         keyName = "IsKeyColumn";
                         break;
+
                     case "MSSQL":
                         keyName = "IsKey";
                         break;
+
                     case "Access":
                         keyName = "IsKey";
                         break;
+
                     default:
                         break;
                 }
@@ -261,6 +259,7 @@ namespace DB2Code
         }
 
         #region"Key Event"
+
         private void txtContent_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.A)
@@ -273,7 +272,7 @@ namespace DB2Code
                 txtContent.Copy();
             }
         }
-        #endregion     
 
+        #endregion
     }
 }

@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using System.IO;
 
 namespace DB2Code
 {
@@ -32,7 +30,6 @@ namespace DB2Code
             {
                 MessageBox.Show(ex.Message);
             }
-
         }
 
         /// <summary>
@@ -82,17 +79,16 @@ namespace DB2Code
                 switch (cbxLang.SelectedItem.ToString())
                 {
                     case "C#":
-                        ret = cd.GenerateMethodCode(languageType.CSharp);
+                        ret = cd.GenerateMethodCode(LanguageType.CSharp);
                         break;
+
                     case "VB":
-                        ret = cd.GenerateMethodCode(languageType.VB);
+                        ret = cd.GenerateMethodCode(LanguageType.VB);
                         break;
                 }
 
                 txtContent.Text = ret;
-
             }
-
         }
 
         /// <summary>
@@ -117,12 +113,15 @@ namespace DB2Code
                     case "DB2":
                         keyName = "IsKeyColumn";
                         break;
+
                     case "MSSQL":
                         keyName = "IsKey";
                         break;
+
                     case "Access":
                         keyName = "IsKey";
                         break;
+
                     default:
                         break;
                 }
@@ -135,15 +134,14 @@ namespace DB2Code
 
             switch (cbDbType.SelectedItem.ToString())
             {
-                case "DB2":
-                    this.cd = new CodeDB2(constring, tableName, keyName, keys.ToArray());
-                    break;
                 case "MSSQL":
                     this.cd = new CodeMSSQL(constring, tableName, keyName, keys.ToArray());
                     break;
+
                 case "Access":
                     this.cd = new CodeAccess(constring, tableName, keyName, keys.ToArray());
                     break;
+
                 default:
                     break;
             }
@@ -180,7 +178,6 @@ namespace DB2Code
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-
         }
 
         private void btnCreateData_Click(object sender, EventArgs e)
@@ -200,10 +197,10 @@ namespace DB2Code
                 columnName = row["ColumnName"].ToString();
                 clbkeys.Items.Add(columnName);
             }
-
         }
 
         #region"¡‰ΩL®∆•Û"
+
         protected void txtContent_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.A)
@@ -215,7 +212,7 @@ namespace DB2Code
                 txtContent.Copy();
             }
         }
-        #endregion
 
+        #endregion
     }
 }

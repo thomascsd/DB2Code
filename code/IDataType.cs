@@ -9,23 +9,6 @@ namespace DB2Code
         CodeSnippetExpression GetDataType(string type);
     }
 
-    public class DB2DataType : IDataType
-    {
-        CodeSnippetExpression IDataType.GetDataType(string type)
-        {
-            CodeSnippetExpression cs = new CodeSnippetExpression();
-            if (type == "System.String")
-            {
-                cs.Value = "iDB2DbType.iDB2VarChar";
-            }
-            else
-            {
-                cs.Value = "iDB2DbType.iDB2Decimal";
-            }
-            return cs;
-        }
-    }
-
     public class MSSQLDataType : IDataType
     {
         CodeSnippetExpression IDataType.GetDataType(string type)
