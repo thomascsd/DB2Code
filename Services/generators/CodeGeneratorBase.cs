@@ -7,44 +7,46 @@ using System.Data;
 using System.IO;
 using System.Text;
 
-namespace DB2Code
+namespace DB2Code.Services.generators
 {
-    public partial class CodeBase
+    public abstract class CodeGeneratorBase
     {
         #region Field And Property
-        protected string mConstring;
-        protected string mTableName;
-        protected List<CodeMemberMethod> mMemberMethods;
-        protected CodeTypeDeclaration mCodeClass;
-        protected DataTable mDt;
-        protected AccessDataBaseType mDatabaseType;
 
-        protected List<string> mkeyColumnNames;
+        private string m_Connectionstring;
+        private string m_TableName;
+        private List<CodeMemberMethod> m_MemberMethods;
+        private CodeTypeDeclaration m_CodeClass;
+        private DataTable m_Dt;
+
+        private List<string> m_keyColumnNames;
 
         /// <summary>
         /// 在資料表結構中，表示該欄位屬於主索引值的名稱
         /// </summary>
-        protected string mSchemaKeyName;
+        private string m_SchemaKeyName;
 
         /// <summary>
         /// 相應資料庫的DataCommnad的名稱
         /// </summary>
-        protected string mCommandName;
+        private string m_CommandName;
 
         /// <summary>
         /// 相應資料庫的DataReader的名稱
         /// </summary>
-        protected string mDataReaderName;
+        private string m_DataReaderName;
 
-        protected string mMethodName;
+        private string m_MethodName;
 
         /// <summary>
         /// 包括資料結構的DataTable
         /// </summary>
         public DataTable DataSource
         {
-            get { return mDt; }
+            get { return m_Dt; }
         }
+
+        public abstract AccessDataBaseType DataBaseType { get; }
 
         #endregion
 
@@ -60,33 +62,33 @@ namespace DB2Code
         /// <param name="dataReaderName">相應資料庫的DataReader的名稱</param>
         /// <param name="keyColumNames">自定的主索引值的集合</param>
         /// <param name="databaseType">資料連結種類</param>
-        public CodeBase(string constring, string tableName, string schemaKeyName,
+        public CodeGeneratorBase(string constring, string tableName, string schemaKeyName,
                         string commandName, string dataReaderName, string[] keyColumNames,
                         AccessDataBaseType databaseType)
             : this(tableName, schemaKeyName, commandName, dataReaderName, keyColumNames, databaseType)
         {
-            this.mConstring = constring;
+            this.m_Connectionstring = constring;
             IDataTool Idb = null;
 
             switch (databaseType)
             {
                 case AccessDataBaseType.MSSQL:
-                    Idb = new DataToolMSSQL(this.mConstring);
+                    Idb = new DataToolMSSQL(this.m_Connectionstring);
                     break;
 
                 case AccessDataBaseType.Access:
-                    Idb = new DataToolAccess(this.mConstring);
+                    Idb = new DataToolAccess(this.m_Connectionstring);
                     break;
 
                 case AccessDataBaseType.ODBC:
-                    Idb = new DataToolODBC(this.mConstring);
+                    Idb = new DataToolODBC(this.m_Connectionstring);
                     break;
 
                 default:
                     break;
             }
 
-            this.mDt = Idb.GetSchema("Select * From " + this.mTableName);
+            this.m_Dt = Idb.GetSchema("Select * From " + this.m_TableName);
         }
 
         /// <summary>
@@ -98,18 +100,18 @@ namespace DB2Code
         /// <param name="dataReaderName">相應資料庫的DataReader的名稱</param>
         /// <param name="keyColumNames">自定的主索引值的集合</param>
         /// <param name="databaseType">資料連結種類</param>
-        public CodeBase(string tableName, string schemaKeyName, string commandName,
+        public CodeGeneratorBase(string tableName, string schemaKeyName, string commandName,
                         string dataReaderName, string[] keyColumNames, AccessDataBaseType databaseType)
         {
-            this.mTableName = tableName;
-            this.mSchemaKeyName = schemaKeyName;
-            this.mDatabaseType = databaseType;
-            this.mCommandName = commandName;
-            this.mDataReaderName = dataReaderName;
+            this.m_TableName = tableName;
+            this.m_SchemaKeyName = schemaKeyName;
+    
+            this.m_CommandName = commandName;
+            this.m_DataReaderName = dataReaderName;
             this.InitClassContent(tableName);
 
-            this.mkeyColumnNames = new List<string>(keyColumNames);
-            this.mMemberMethods = new List<CodeMemberMethod>();
+            this.m_keyColumnNames = new List<string>(keyColumNames);
+            this.m_MemberMethods = new List<CodeMemberMethod>();
         }
 
         #endregion
@@ -124,13 +126,13 @@ namespace DB2Code
         {
             CodeConstructor constructor = new CodeConstructor();
 
-            this.mCodeClass = new CodeTypeDeclaration(string.Format("{0}Data", tableName));
-            this.mCodeClass.IsClass = true;
-            this.mCodeClass.Attributes = MemberAttributes.Public;
+            this.m_CodeClass = new CodeTypeDeclaration(string.Format("{0}Data", tableName));
+            this.m_CodeClass.IsClass = true;
+            this.m_CodeClass.Attributes = MemberAttributes.Public;
 
             constructor.Attributes = MemberAttributes.Public;
 
-            this.mCodeClass.Members.Add(constructor);
+            this.m_CodeClass.Members.Add(constructor);
         }
 
         /// <summary>
@@ -143,14 +145,14 @@ namespace DB2Code
 
             //this.mCodeClass.StartDirectives.Add(new CodeRegionDirective(CodeRegionMode.Start, "Field And Property"));
 
-            foreach (DataRow row in this.mDt.Rows)
+            foreach (DataRow row in this.m_Dt.Rows)
             {
                 string[] types = row["DataType"].ToString().Split(new char[] { ',' });
                 string columnName = string.Format("m{0}", row["ColumnName"]);
 
                 //Field
                 field = new CodeMemberField(types[0], columnName);
-                this.mCodeClass.Members.Add(field);
+                this.m_CodeClass.Members.Add(field);
 
                 //Property
                 property = new CodeMemberProperty();
@@ -163,7 +165,7 @@ namespace DB2Code
 
                 property.SetStatements.Add(new CodeAssignStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), columnName), new CodePropertySetValueReferenceExpression()));
 
-                this.mCodeClass.Members.Add(property);
+                this.m_CodeClass.Members.Add(property);
             }
 
             //this.mCodeClass.EndDirectives.Add(new CodeRegionDirective(CodeRegionMode.End, string.Empty));
@@ -175,25 +177,25 @@ namespace DB2Code
 
         public void MethodContent(MethodType methodType)
         {
-            this.MethodContent(this.mDt, methodType);
+            this.MethodContent(this.m_Dt, methodType);
         }
 
         public void MethodContent(DataTable dt, MethodType methodType)
         {
             MethodGenerator mg;
             MethodGenerateOptions options = new MethodGenerateOptions();
-            options.CommandName = this.mCommandName;
-            options.DataBaseType = this.mDatabaseType;
-            options.DataReaderName = this.mDataReaderName;
+            options.CommandName = this.m_CommandName;
+            options.DataBaseType = this.DataBaseType;
+            options.DataReaderName = this.m_DataReaderName;
             options.DataTable = dt;
-            options.KeyColumnNames = this.mkeyColumnNames;
-            options.SchemakeyName = this.mSchemaKeyName;
-            options.TableName = this.mTableName;
+            options.KeyColumnNames = this.m_keyColumnNames;
+            options.SchemakeyName = this.m_SchemaKeyName;
+            options.TableName = this.m_TableName;
 
             mg = new MethodGenerator(options);
             mg.CreateMethod(methodType);
 
-            this.mMemberMethods = mg.MemberMethods;
+            this.m_MemberMethods = mg.MemberMethods;
         }
 
         #endregion
@@ -215,12 +217,12 @@ namespace DB2Code
             {
                 case LanguageType.CSharp:
                     provider = new CSharpCodeProvider();
-                    code = this.GetCodeString(provider, this.mCodeClass);
+                    code = this.GetCodeString(provider, this.m_CodeClass);
                     break;
 
                 case LanguageType.VB:
                     provider = new VBCodeProvider();
-                    code = this.GetCodeString(provider, this.mCodeClass);
+                    code = this.GetCodeString(provider, this.m_CodeClass);
                     break;
 
                 default:
@@ -240,7 +242,7 @@ namespace DB2Code
             StringBuilder sb = new StringBuilder();
             CodeDomProvider provider;
 
-            foreach (CodeMemberMethod method in this.mMemberMethods)
+            foreach (CodeMemberMethod method in this.m_MemberMethods)
             {
                 switch (type)
                 {

@@ -37,9 +37,11 @@ namespace DB2Code
         /// </summary>
         protected void SaveHistoryList()
         {
-            LogData data = new LogData();
-            data.ConnectionString = txtConstring.Text;
-            data.TableName = txtName.Text;
+            LogData data = new LogData
+            {
+                ConnectionString = txtConstring.Text,
+                TableName = txtName.Text
+            };
             this.Writer.Add(data);
         }
 
@@ -110,10 +112,6 @@ namespace DB2Code
             {
                 switch (cbDbType.SelectedItem.ToString())
                 {
-                    case "DB2":
-                        keyName = "IsKeyColumn";
-                        break;
-
                     case "MSSQL":
                         keyName = "IsKey";
                         break;
@@ -214,5 +212,7 @@ namespace DB2Code
         }
 
         #endregion
+
+
     }
 }

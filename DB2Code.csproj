@@ -74,21 +74,23 @@
     <Compile Include="BaseForm.Designer.cs">
       <DependentUpon>BaseForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="code\Code.cs" />
-    <Compile Include="code\CodeBase.cs" />
-    <Compile Include="code\Emun.cs" />
-    <Compile Include="code\LogWriter.cs" />
-    <Compile Include="code\MethodGenerator.cs" />
-    <Compile Include="code\SqlGenerator.cs" />
-    <Compile Include="code\XMLDataWriterBase.cs" />
+    <Compile Include="Services\generators\CodeGenerator.cs" />
+    <Compile Include="Services\generators\CodeGeneratorAccess.cs" />
+    <Compile Include="Services\generators\CodeGeneratorBase.cs" />
+    <Compile Include="Services\Emun.cs" />
+    <Compile Include="Services\generators\CodeGeneratorMsSql.cs" />
+    <Compile Include="Services\LogWriter.cs" />
+    <Compile Include="Services\MethodGenerator.cs" />
+    <Compile Include="Services\SqlGenerator.cs" />
+    <Compile Include="Services\XMLDataWriterBase.cs" />
     <Compile Include="Customeize.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Customeize.Designer.cs">
       <DependentUpon>Customeize.cs</DependentUpon>
     </Compile>
-    <Compile Include="code\IDataTool.cs" />
-    <Compile Include="code\IDataType.cs" />
+    <Compile Include="Services\IDataTool.cs" />
+    <Compile Include="Services\IDataType.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
