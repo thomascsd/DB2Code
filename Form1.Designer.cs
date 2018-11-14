@@ -40,7 +40,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.txtXml = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.ckbDataContract = new System.Windows.Forms.CheckBox();
             this.ckbObject = new System.Windows.Forms.CheckBox();
             this.rbnSelect = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
@@ -193,7 +192,6 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.ckbDataContract);
             this.groupBox1.Controls.Add(this.ckbObject);
             this.groupBox1.Controls.Add(this.rbnSelect);
             this.groupBox1.Controls.Add(this.label4);
@@ -215,16 +213,6 @@
             this.groupBox1.Size = new System.Drawing.Size(1524, 256);
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
-            // 
-            // ckbDataContract
-            // 
-            this.ckbDataContract.AutoSize = true;
-            this.ckbDataContract.Location = new System.Drawing.Point(1035, 186);
-            this.ckbDataContract.Name = "ckbDataContract";
-            this.ckbDataContract.Size = new System.Drawing.Size(232, 31);
-            this.ckbDataContract.TabIndex = 15;
-            this.ckbDataContract.Text = "啟用DataContract";
-            this.ckbDataContract.UseVisualStyleBackColor = true;
             // 
             // ckbObject
             // 
@@ -422,7 +410,6 @@
         private System.Windows.Forms.TabPage tbKeyColumn;
         protected System.Windows.Forms.CheckedListBox clbkeys;
         private System.Windows.Forms.Button btnCreateData;
-        private System.Windows.Forms.CheckBox ckbDataContract;
         private System.Windows.Forms.CheckBox ckbObject;
     }
 }

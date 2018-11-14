@@ -2,38 +2,27 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Data;
 
-namespace DB2Code
+namespace DB2Code.Services.generators
 {
-    internal class MethodGenerator
+    public class MethodGenerator
     {
         private CodeVariableDeclarationStatement mCmd, mSql, mDr;
-        private MethodGenerateOptions mOptions;
-        private List<CodeMemberMethod> mMemberMethods;
+        private MethodGenerateOption mOption;
 
         /// <summary>
         /// 型別方法的集合
         /// </summary>
-        public List<CodeMemberMethod> MemberMethods
-        {
-            get { return mMemberMethods; }
-            set { mMemberMethods = value; }
-        }
+        public List<CodeMemberMethod> MemberMethods { get; set; }
 
-        public MethodGenerator(MethodGenerateOptions options)
+        public void CreateMethod(MethodGenerateOption option)
         {
-            this.mOptions = options;
-            this.mCmd = new CodeVariableDeclarationStatement(this.mOptions.CommandName, "cmd");
-            this.mSql = new CodeVariableDeclarationStatement(typeof(string), "sqlStr");
-            this.mDr = new CodeVariableDeclarationStatement(this.mOptions.DataReaderName, "dr");
-            this.mMemberMethods = new List<CodeMemberMethod>();
-        }
+            this.Initialize(option);
 
-        public void CreateMethod(MethodType methodtype)
-        {
-            switch (methodtype)
+            switch (option.MethodType)
             {
+                default:
                 case MethodType.Select:
-                    this.CrateSelect();
+                    this.CreateSelect();
                     break;
 
                 case MethodType.Insert:
@@ -43,26 +32,32 @@ namespace DB2Code
                 case MethodType.Update:
                     this.CreateUpdate();
                     break;
-
-                default:
-                    break;
             }
         }
 
-        #region"Select"
+        private void Initialize(MethodGenerateOption option)
+        {
+            this.mOption = option;
+            this.mCmd = new CodeVariableDeclarationStatement(this.mOption.CommandName, "cmd");
+            this.mSql = new CodeVariableDeclarationStatement(typeof(string), "sqlStr");
+            this.mDr = new CodeVariableDeclarationStatement(this.mOption.DataReaderName, "dr");
+            this.MemberMethods = new List<CodeMemberMethod>();
+        }
 
-        private void CrateSelect()
+        #region Select
+
+        private void CreateSelect()
         {
             CodeMemberMethod memberMethod;
 
             memberMethod = this.CreateGetData("AllData");
-            this.mMemberMethods.Add(memberMethod);
+            this.MemberMethods.Add(memberMethod);
 
             memberMethod = this.CreateGetData("ByKey");
-            this.mMemberMethods.Add(memberMethod);
+            this.MemberMethods.Add(memberMethod);
 
-            memberMethod = this.CreateGetObjectMethod(this.mOptions.DataTable);
-            this.mMemberMethods.Add(memberMethod);
+            memberMethod = this.CreateGetObjectMethod(this.mOption.DataTable);
+            this.MemberMethods.Add(memberMethod);
         }
 
         /// <summary>
@@ -72,7 +67,7 @@ namespace DB2Code
         /// <returns></returns>
         private CodeMemberMethod CreateGetData(string type)
         {
-            string typeName = string.Format("{0}Data", this.mOptions.TableName);
+            string typeName = $"{this.mOption.TableName}Data";
             CodeMemberMethod memberMethod = new CodeMemberMethod();
             CodeAssignStatement codeAssign;
             CodeObjectCreateExpression obj;
@@ -81,7 +76,7 @@ namespace DB2Code
             CodeMethodInvokeExpression methodInvoke;
             //建立泛型型別
             CodeTypeReference typeReference = new CodeTypeReference();
-            typeReference.BaseType = string.Format("System.Collections.Generic.List`1[{0}Data]", this.mOptions.TableName);
+            typeReference.BaseType = string.Format("System.Collections.Generic.List`1[{0}Data]", this.mOption.TableName);
 
             //設定方法的基本屬性
             memberMethod.ReturnType = typeReference;
@@ -90,7 +85,11 @@ namespace DB2Code
                 //GetAllData
                 memberMethod.Attributes = MemberAttributes.Public;
                 memberMethod.Name = "GetAllData";
-                memberMethod.CustomAttributes.Add(new CodeAttributeDeclaration("System.ComponentModel.DataObjectMethod", new CodeAttributeArgument(new CodeSnippetExpression("System.ComponentModel.DataObjectMethodType.Select"))));
+
+                if (this.mOption.EnableDataObjectMethod)
+                {
+                    memberMethod.CustomAttributes.Add(new CodeAttributeDeclaration("System.ComponentModel.DataObjectMethod", new CodeAttributeArgument(new CodeSnippetExpression("System.ComponentModel.DataObjectMethodType.Select"))));
+                }
             }
             else
             {
@@ -116,19 +115,19 @@ namespace DB2Code
             //設定Sql字串
             if (type == "AllData")
             {
-                codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("sqlStr"), new CodePrimitiveExpression("Select * From " + this.mOptions.TableName));
+                codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("sqlStr"), new CodePrimitiveExpression("Select * From " + this.mOption.TableName));
                 memberMethod.Statements.Add(codeAssign);
             }
             else
             {
-                methodInvoke = new CodeMethodInvokeExpression(new CodeSnippetExpression("string"), "Format", new CodeSnippetExpression("\"Select * From " + this.mOptions.TableName + " Where {0} = @{0}\""), new CodeVariableReferenceExpression("key"));
+                methodInvoke = new CodeMethodInvokeExpression(new CodeSnippetExpression("string"), "Format", new CodeSnippetExpression("\"Select * From " + this.mOption.TableName + " Where {0} = @{0}\""), new CodeVariableReferenceExpression("key"));
                 codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("sqlStr"), methodInvoke);
                 memberMethod.Statements.Add(codeAssign);
             }
 
             //cmd的初始化
             //cmd = new iDB2Command(sqlStr,con);
-            obj = new CodeObjectCreateExpression(new CodeTypeReference(this.mOptions.CommandName), new CodeExpression[] { new CodeVariableReferenceExpression("sqlStr"), new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon") });
+            obj = new CodeObjectCreateExpression(new CodeTypeReference(this.mOption.CommandName), new CodeExpression[] { new CodeVariableReferenceExpression("sqlStr"), new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon") });
             codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("cmd"), obj);
             memberMethod.Statements.Add(codeAssign);
 
@@ -161,7 +160,7 @@ namespace DB2Code
             whileLoop.IncrementStatement = new CodeExpressionStatement(new CodeSnippetExpression(""));
 
             //data = this.Getxx(dr);
-            methodInvoke = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Get" + this.mOptions.TableName, new CodeExpression[] { new CodeVariableReferenceExpression("dr") });
+            methodInvoke = new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "Get" + this.mOption.TableName, new CodeExpression[] { new CodeVariableReferenceExpression("dr") });
             codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("data"), methodInvoke);
             whileLoop.Statements.Add(codeAssign);
 
@@ -193,13 +192,13 @@ namespace DB2Code
             CodeObjectCreateExpression obj;
 
             memberMethod.Attributes = MemberAttributes.Private;
-            memberMethod.Name = string.Format("Get{0}", this.mOptions.TableName);
-            memberMethod.ReturnType = new CodeTypeReference(this.mOptions.TableName + "Data");
-            memberMethod.Parameters.Add(new CodeParameterDeclarationExpression(this.mOptions.DataReaderName, "dr"));
+            memberMethod.Name = string.Format("Get{0}", this.mOption.TableName);
+            memberMethod.ReturnType = new CodeTypeReference(this.mOption.TableName + "Data");
+            memberMethod.Parameters.Add(new CodeParameterDeclarationExpression(this.mOption.DataReaderName, "dr"));
 
             //xx data = new xxx();
-            obj = new CodeObjectCreateExpression(this.mOptions.TableName + "Data", new CodeExpression[] { });
-            codeVar = new CodeVariableDeclarationStatement(this.mOptions.TableName + "Data", "data", obj);
+            obj = new CodeObjectCreateExpression(this.mOption.TableName + "Data", new CodeExpression[] { });
+            codeVar = new CodeVariableDeclarationStatement(this.mOption.TableName + "Data", "data", obj);
             memberMethod.Statements.Add(codeVar);
 
             foreach (DataRow row in dt.Rows)
@@ -237,19 +236,24 @@ namespace DB2Code
 
         #endregion
 
-        #region"Insert"
+        #region Insert
 
         private void CreateInset()
         {
-            string typeName = string.Format("{0}Data", this.mOptions.TableName);
+            string typeName = $"{this.mOption.TableName}Data";
             CodeMemberMethod memberMethod = new CodeMemberMethod();
             CodeAssignStatement codeAssign;
             CodeObjectCreateExpression obj;
+
             //設定方法的基本屬性
             memberMethod.Attributes = MemberAttributes.Public;
             memberMethod.ReturnType = new CodeTypeReference("System.Void");
             memberMethod.Name = "Insert";
-            memberMethod.CustomAttributes.Add(new CodeAttributeDeclaration("System.ComponentModel.DataObjectMethod", new CodeAttributeArgument(new CodeSnippetExpression("System.ComponentModel.DataObjectMethodType.Insert"))));
+
+            if (this.mOption.EnableDataObjectMethod)
+            {
+                memberMethod.CustomAttributes.Add(new CodeAttributeDeclaration("System.ComponentModel.DataObjectMethod", new CodeAttributeArgument(new CodeSnippetExpression("System.ComponentModel.DataObjectMethodType.Insert"))));
+            }
             //設定參數
             memberMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeName, "data"));
 
@@ -257,17 +261,17 @@ namespace DB2Code
             memberMethod.Statements.Add(this.mCmd);
 
             //Sqlstr(Insert)字串
-            codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("sqlStr"), new CodePrimitiveExpression(SqlGenerator.CreateInsertSql(this.mOptions.TableName, this.mOptions.DataTable)));
+            codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("sqlStr"), new CodePrimitiveExpression(SqlGenerator.CreateInsertSql(this.mOption.TableName, this.mOption.DataTable)));
             memberMethod.Statements.Add(codeAssign);
 
             //cmd的初始化
             //cmd = new iDB2Command(sqlStr,con);
-            obj = new CodeObjectCreateExpression(new CodeTypeReference(this.mOptions.CommandName), new CodeExpression[] { new CodeVariableReferenceExpression("sqlStr"), new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon") });
+            obj = new CodeObjectCreateExpression(new CodeTypeReference(this.mOption.CommandName), new CodeExpression[] { new CodeVariableReferenceExpression("sqlStr"), new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon") });
             codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("cmd"), obj);
             memberMethod.Statements.Add(codeAssign);
 
             //新增
-            foreach (DataRow row in this.mOptions.DataTable.Rows)
+            foreach (DataRow row in this.mOption.DataTable.Rows)
             {
                 memberMethod.Statements.Add(this.GetMethod(row));
             }
@@ -279,16 +283,16 @@ namespace DB2Code
             memberMethod.Statements.Add(new CodeMethodInvokeExpression(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon"), "Close", new CodeExpression[] { }));
             memberMethod.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("cmd"), "Dispose", new CodeExpression[] { }));
 
-            this.mMemberMethods.Add(memberMethod);
+            this.MemberMethods.Add(memberMethod);
         }
 
         #endregion
 
-        #region"Update"
+        #region Update
 
         private void CreateUpdate()
         {
-            string typeName = string.Format("{0}Data", this.mOptions.TableName);
+            string typeName = $"{this.mOption.TableName}Data";
             string columnName;
             CodeMemberMethod memberMethod = new CodeMemberMethod();
             CodeAssignStatement codeAssign;
@@ -302,27 +306,31 @@ namespace DB2Code
             memberMethod.Name = "Update";
             //設定參數
             memberMethod.Parameters.Add(new CodeParameterDeclarationExpression(typeName, "data"));
-            memberMethod.CustomAttributes.Add(new CodeAttributeDeclaration("System.ComponentModel.DataObjectMethod", new CodeAttributeArgument(new CodeSnippetExpression("System.ComponentModel.DataObjectMethodType.Update"))));
+
+            if (this.mOption.EnableDataObjectMethod)
+            {
+                memberMethod.CustomAttributes.Add(new CodeAttributeDeclaration("System.ComponentModel.DataObjectMethod", new CodeAttributeArgument(new CodeSnippetExpression("System.ComponentModel.DataObjectMethodType.Update"))));
+            }
 
             memberMethod.Statements.Add(this.mSql);
             memberMethod.Statements.Add(this.mCmd);
 
             //Sqlstr(update)
-            codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("sqlStr"), new CodePrimitiveExpression(SqlGenerator.CreateUpdateSql(this.mOptions.DataTable, this.mOptions.TableName, this.mOptions.SchemakeyName, this.mOptions.KeyColumnNames)));
+            codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("sqlStr"), new CodePrimitiveExpression(SqlGenerator.CreateUpdateSql(this.mOption.DataTable, this.mOption.TableName, this.mOption.SchemaKeyName, this.mOption.KeyColunmNames)));
             memberMethod.Statements.Add(codeAssign);
 
             //cmd的初始化
             //cmd = new iDB2Command(sqlStr,con);
-            obj = new CodeObjectCreateExpression(new CodeTypeReference(this.mOptions.CommandName), new CodeExpression[] { new CodeVariableReferenceExpression("sqlStr"), new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon") });
+            obj = new CodeObjectCreateExpression(new CodeTypeReference(this.mOption.CommandName), new CodeExpression[] { new CodeVariableReferenceExpression("sqlStr"), new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon") });
             codeAssign = new CodeAssignStatement(new CodeVariableReferenceExpression("cmd"), obj);
             memberMethod.Statements.Add(codeAssign);
 
-            if (this.mOptions.KeyColumnNames.Count > 0)
+            if (this.mOption.KeyColunmNames.Count > 0)
             {
                 //有指定屬於PK的欄位
-                keys = this.mOptions.KeyColumnNames;
+                keys = this.mOption.KeyColunmNames;
 
-                foreach (DataRow row in this.mOptions.DataTable.Rows)
+                foreach (DataRow row in this.mOption.DataTable.Rows)
                 {
                     columnName = row["ColumnName"].ToString();
                     if (!keys.Contains(columnName))
@@ -334,10 +342,10 @@ namespace DB2Code
             else
             {
                 //在資料表結構中，有指定表示該欄位屬於主索引值的名稱
-                foreach (DataRow row in this.mOptions.DataTable.Rows)
+                foreach (DataRow row in this.mOption.DataTable.Rows)
                 {
                     columnName = row["ColumnName"].ToString();
-                    if ((bool)row[this.mOptions.SchemakeyName])
+                    if ((bool)row[this.mOption.SchemaKeyName])
                     {
                         keys.Add(columnName);
                     }
@@ -348,7 +356,7 @@ namespace DB2Code
                 }
             }
 
-            foreach (DataRow row in this.mOptions.DataTable.Rows)
+            foreach (DataRow row in this.mOption.DataTable.Rows)
             {
                 columnName = row["ColumnName"].ToString();
                 //不是pk的欄位
@@ -358,7 +366,7 @@ namespace DB2Code
                 }
             }
 
-            foreach (DataRow row in this.mOptions.DataTable.Rows)
+            foreach (DataRow row in this.mOption.DataTable.Rows)
             {
                 columnName = row["ColumnName"].ToString();
                 //是主索引pk的欄位
@@ -375,12 +383,12 @@ namespace DB2Code
             memberMethod.Statements.Add(new CodeMethodInvokeExpression(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), "mCon"), "Close", new CodeExpression[] { }));
             memberMethod.Statements.Add(new CodeMethodInvokeExpression(new CodeVariableReferenceExpression("cmd"), "Dispose", new CodeExpression[] { }));
 
-            this.mMemberMethods.Add(memberMethod);
+            this.MemberMethods.Add(memberMethod);
         }
 
         #endregion
 
-        #region"Insert、Update共同方法"
+        #region Insert、Update共同方法
 
         /// <summary>
         /// 取得Command的Parameter
@@ -397,34 +405,9 @@ namespace DB2Code
             //cmd.Parameters.AddWithValue("@xx", data.xx);
             codeProperty = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("cmd"), "Parameters");
 
-            codeMethod = new CodeMethodInvokeExpression(codeProperty, "AddWithValue", new CodeExpression[] { new CodePrimitiveExpression(string.Format("@{0}", row["ColumnName"])), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("data"), row["ColumnName"].ToString()) });
+            codeMethod = new CodeMethodInvokeExpression(codeProperty, "AddWithValue", new CodeExpression[] { new CodePrimitiveExpression($"@{row["ColumnName"]}"), new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("data"), row["ColumnName"].ToString()) });
 
             return codeMethod;
-        }
-
-        /// <summary>
-        /// 只有SA400才用
-        /// </summary>
-        /// <param name="row"></param>
-        /// <returns></returns>
-        private CodeAssignStatement GetCodeAssign(DataRow row)
-        {
-            string[] types = row["DataType"].ToString().Split(',');
-            CodeAssignStatement codeAssign = new CodeAssignStatement();
-            CodePropertyReferenceExpression codeProperty, codePropertyMethod;
-            CodeMethodInvokeExpression codeMethod;
-
-            //cmd.Parameters.Add("@xx",iDB2DbType.iDB2Decimal").Value = data.xx;
-            codeProperty = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("cmd"), "Parameters");
-
-            codeMethod = new CodeMethodInvokeExpression(codeProperty, "Add", new CodeExpression[] { new CodePrimitiveExpression(string.Format("@{0}", row["ColumnName"])), this.GetDataType(types[0]) });
-
-            codePropertyMethod = new CodePropertyReferenceExpression(codeMethod, "Value");
-
-            codeAssign.Left = codePropertyMethod;
-            codeAssign.Right = new CodePropertyReferenceExpression(new CodeVariableReferenceExpression("data"), row["ColumnName"].ToString());
-
-            return codeAssign;
         }
 
         private CodeSnippetExpression GetDataType(string type)
@@ -432,9 +415,9 @@ namespace DB2Code
             IDataType de = null;
             CodeSnippetExpression cs = new CodeSnippetExpression();
 
-            switch (this.mOptions.DataBaseType)
+            switch (this.mOption.DataBaseType)
             {
-                case AccessDataBaseType.MSSQL:
+                case AccessDataBaseType.MsSql:
                     de = new MSSQLDataType();
                     break;
 
@@ -448,72 +431,5 @@ namespace DB2Code
         }
 
         #endregion
-    }
-
-    internal class MethodGenerateOptions
-    {
-        #region"Property
-        private AccessDataBaseType mDatabaseType;
-
-        public AccessDataBaseType DataBaseType
-        {
-            get { return mDatabaseType; }
-            set { mDatabaseType = value; }
-        }
-
-        private string mTableName;
-
-        public string TableName
-        {
-            get { return mTableName; }
-            set { mTableName = value; }
-        }
-
-        private string mCommandName;
-
-        public string CommandName
-        {
-            get { return mCommandName; }
-            set { mCommandName = value; }
-        }
-
-        private string mDataReaderName;
-
-        public string DataReaderName
-        {
-            get { return mDataReaderName; }
-            set { mDataReaderName = value; }
-        }
-
-        private List<string> mkeyColumnNames;
-
-        public List<string> KeyColumnNames
-        {
-            get { return mkeyColumnNames; }
-            set { mkeyColumnNames = value; }
-        }
-
-        private string mSchemaKeyName;
-
-        public string SchemakeyName
-        {
-            get { return mSchemaKeyName; }
-            set { mSchemaKeyName = value; }
-        }
-
-        private DataTable mDataTable;
-
-        public DataTable DataTable
-        {
-            get { return mDataTable; }
-            set { mDataTable = value; }
-        }
-
-        #endregion
-
-        public MethodGenerateOptions()
-        {
-            this.mkeyColumnNames = new List<string>();
-        }
     }
 }

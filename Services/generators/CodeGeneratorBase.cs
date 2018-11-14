@@ -13,28 +13,13 @@ namespace DB2Code.Services.generators
     {
         #region Field And Property
 
-        private string m_Connectionstring;
-        private string m_TableName;
+        private GeneratorOption m_Option;
+
         private List<CodeMemberMethod> m_MemberMethods;
         private CodeTypeDeclaration m_CodeClass;
         private DataTable m_Dt;
 
         private List<string> m_keyColumnNames;
-
-        /// <summary>
-        /// 在資料表結構中，表示該欄位屬於主索引值的名稱
-        /// </summary>
-        private string m_SchemaKeyName;
-
-        /// <summary>
-        /// 相應資料庫的DataCommnad的名稱
-        /// </summary>
-        private string m_CommandName;
-
-        /// <summary>
-        /// 相應資料庫的DataReader的名稱
-        /// </summary>
-        private string m_DataReaderName;
 
         private string m_MethodName;
 
@@ -46,6 +31,9 @@ namespace DB2Code.Services.generators
             get { return m_Dt; }
         }
 
+        /// <summary>
+        /// 資料連結種類
+        /// </summary>
         public abstract AccessDataBaseType DataBaseType { get; }
 
         #endregion
@@ -55,66 +43,39 @@ namespace DB2Code.Services.generators
         /// <summary>
         /// 建構式
         /// </summary>
-        /// <param name="constring">連線字串</param>
-        /// <param name="tableName"></param>
-        /// <param name="schemaKeyName">在資料表結構中，表示該欄位屬於主索引值的名稱</param>
-        /// <param name="commandName">相應資料庫的DataCommnad的名稱</param>
-        /// <param name="dataReaderName">相應資料庫的DataReader的名稱</param>
-        /// <param name="keyColumNames">自定的主索引值的集合</param>
-        /// <param name="databaseType">資料連結種類</param>
-        public CodeGeneratorBase(string constring, string tableName, string schemaKeyName,
-                        string commandName, string dataReaderName, string[] keyColumNames,
-                        AccessDataBaseType databaseType)
-            : this(tableName, schemaKeyName, commandName, dataReaderName, keyColumNames, databaseType)
+        public CodeGeneratorBase(GeneratorOption option)
         {
-            this.m_Connectionstring = constring;
-            IDataTool Idb = null;
-
-            switch (databaseType)
-            {
-                case AccessDataBaseType.MSSQL:
-                    Idb = new DataToolMSSQL(this.m_Connectionstring);
-                    break;
-
-                case AccessDataBaseType.Access:
-                    Idb = new DataToolAccess(this.m_Connectionstring);
-                    break;
-
-                case AccessDataBaseType.ODBC:
-                    Idb = new DataToolODBC(this.m_Connectionstring);
-                    break;
-
-                default:
-                    break;
-            }
-
-            this.m_Dt = Idb.GetSchema("Select * From " + this.m_TableName);
-        }
-
-        /// <summary>
-        /// 建構式
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="schemaKeyName">在資料表結構中，表示該欄位屬於主索引值的名稱</param>
-        /// <param name="commandName">相應資料庫的DataCommnad的名稱</param>
-        /// <param name="dataReaderName">相應資料庫的DataReader的名稱</param>
-        /// <param name="keyColumNames">自定的主索引值的集合</param>
-        /// <param name="databaseType">資料連結種類</param>
-        public CodeGeneratorBase(string tableName, string schemaKeyName, string commandName,
-                        string dataReaderName, string[] keyColumNames, AccessDataBaseType databaseType)
-        {
-            this.m_TableName = tableName;
-            this.m_SchemaKeyName = schemaKeyName;
-    
-            this.m_CommandName = commandName;
-            this.m_DataReaderName = dataReaderName;
-            this.InitClassContent(tableName);
-
-            this.m_keyColumnNames = new List<string>(keyColumNames);
+            this.m_Option = option;
+            this.InitClassContent(option.TableName);
+            this.m_keyColumnNames = new List<string>(option.KeyColunmNames);
             this.m_MemberMethods = new List<CodeMemberMethod>();
+            this.Initialize();
         }
 
         #endregion
+
+        public void Initialize()
+        {
+            IDataTool Idb;
+
+            switch (this.DataBaseType)
+            {
+                default:
+                case AccessDataBaseType.MsSql:
+                    Idb = new DataToolMSSQL(this.m_Option.Connectionstring);
+                    break;
+
+                case AccessDataBaseType.Access:
+                    Idb = new DataToolAccess(this.m_Option.Connectionstring);
+                    break;
+
+                case AccessDataBaseType.ODBC:
+                    Idb = new DataToolODBC(this.m_Option.Connectionstring);
+                    break;
+            }
+
+            this.m_Dt = Idb.GetSchema("Select * From " + this.m_Option.TableName);
+        }
 
         #region 產生屬性
 
@@ -126,9 +87,11 @@ namespace DB2Code.Services.generators
         {
             CodeConstructor constructor = new CodeConstructor();
 
-            this.m_CodeClass = new CodeTypeDeclaration(string.Format("{0}Data", tableName));
-            this.m_CodeClass.IsClass = true;
-            this.m_CodeClass.Attributes = MemberAttributes.Public;
+            this.m_CodeClass = new CodeTypeDeclaration($"{tableName}Data")
+            {
+                IsClass = true,
+                Attributes = MemberAttributes.Public
+            };
 
             constructor.Attributes = MemberAttributes.Public;
 
@@ -148,18 +111,19 @@ namespace DB2Code.Services.generators
             foreach (DataRow row in this.m_Dt.Rows)
             {
                 string[] types = row["DataType"].ToString().Split(new char[] { ',' });
-                string columnName = string.Format("m{0}", row["ColumnName"]);
+                string columnName = $"m{row["ColumnName"]}";
 
                 //Field
                 field = new CodeMemberField(types[0], columnName);
                 this.m_CodeClass.Members.Add(field);
 
                 //Property
-                property = new CodeMemberProperty();
-
-                property.Attributes = MemberAttributes.Public;
-                property.Type = new CodeTypeReference(types[0]);
-                property.Name = row["ColumnName"].ToString();
+                property = new CodeMemberProperty
+                {
+                    Attributes = MemberAttributes.Public,
+                    Type = new CodeTypeReference(types[0]),
+                    Name = row["ColumnName"].ToString()
+                };
 
                 property.GetStatements.Add(new CodeMethodReturnStatement(new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), columnName)));
 
@@ -175,32 +139,35 @@ namespace DB2Code.Services.generators
 
         #region 新增或修改的產生
 
-        public void MethodContent(MethodType methodType)
+        public void MethodContent(MethodType methodType, bool enableDataObjectMethod)
         {
-            this.MethodContent(this.m_Dt, methodType);
+            this.MethodContent(this.m_Dt, methodType, enableDataObjectMethod);
         }
 
-        public void MethodContent(DataTable dt, MethodType methodType)
+        public void MethodContent(DataTable dt, MethodType methodType, bool enableDataObjectMethod)
         {
             MethodGenerator mg;
-            MethodGenerateOptions options = new MethodGenerateOptions();
-            options.CommandName = this.m_CommandName;
-            options.DataBaseType = this.DataBaseType;
-            options.DataReaderName = this.m_DataReaderName;
-            options.DataTable = dt;
-            options.KeyColumnNames = this.m_keyColumnNames;
-            options.SchemakeyName = this.m_SchemaKeyName;
-            options.TableName = this.m_TableName;
+            MethodGenerateOption option = new MethodGenerateOption
+            {
+                CommandName = this.m_Option.CommandName,
+                DataBaseType = this.DataBaseType,
+                DataReaderName = this.m_Option.DataReaderName,
+                DataTable = dt,
+                KeyColunmNames = this.m_keyColumnNames,
+                SchemaKeyName = this.m_Option.SchemaKeyName,
+                TableName = this.m_Option.TableName,
+                MethodType = methodType
+            };
 
-            mg = new MethodGenerator(options);
-            mg.CreateMethod(methodType);
+            mg = new MethodGenerator();
+            mg.CreateMethod(option);
 
             this.m_MemberMethods = mg.MemberMethods;
         }
 
         #endregion
 
-        #region"產生程式碼"
+        #region 產生程式碼
 
         /// <summary>
         ///  產生程式碼(類別)
@@ -215,6 +182,7 @@ namespace DB2Code.Services.generators
 
             switch (type)
             {
+                default:
                 case LanguageType.CSharp:
                     provider = new CSharpCodeProvider();
                     code = this.GetCodeString(provider, this.m_CodeClass);
@@ -223,9 +191,6 @@ namespace DB2Code.Services.generators
                 case LanguageType.VB:
                     provider = new VBCodeProvider();
                     code = this.GetCodeString(provider, this.m_CodeClass);
-                    break;
-
-                default:
                     break;
             }
 
@@ -246,6 +211,7 @@ namespace DB2Code.Services.generators
             {
                 switch (type)
                 {
+                    default:
                     case LanguageType.CSharp:
                         provider = new CSharpCodeProvider();
                         sb.AppendLine(this.GetCodeString(provider, method));
@@ -254,9 +220,6 @@ namespace DB2Code.Services.generators
                     case LanguageType.VB:
                         provider = new VBCodeProvider();
                         sb.AppendLine(this.GetCodeString(provider, method));
-                        break;
-
-                    default:
                         break;
                 }
             }

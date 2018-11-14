@@ -5,7 +5,7 @@ namespace DB2Code
     /// </summary>
     public enum AccessDataBaseType
     {
-        MSSQL = 2,
+        MsSql = 2,
         Access = 3,
         ODBC = 4
     }

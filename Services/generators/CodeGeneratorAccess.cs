@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DB2Code.Services.generators
+﻿namespace DB2Code.Services.generators
 {
     public class CodeGeneratorAccess : CodeGeneratorBase
     {
-        public override AccessDataBaseType DataBaseType => throw new NotImplementedException();
+        public override AccessDataBaseType DataBaseType
+        {
+            get { return AccessDataBaseType.Access; }
+        }
+
+        public CodeGeneratorAccess(GeneratorOption option) : base(option)
+        {
+        }
     }
 }

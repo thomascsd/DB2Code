@@ -79,8 +79,10 @@
     <Compile Include="Services\generators\CodeGeneratorBase.cs" />
     <Compile Include="Services\Emun.cs" />
     <Compile Include="Services\generators\CodeGeneratorMsSql.cs" />
+    <Compile Include="Services\generators\GeneratorOption.cs" />
+    <Compile Include="Services\generators\MethodGenerateOption.cs" />
     <Compile Include="Services\LogWriter.cs" />
-    <Compile Include="Services\MethodGenerator.cs" />
+    <Compile Include="Services\generators\MethodGenerator.cs" />
     <Compile Include="Services\SqlGenerator.cs" />
     <Compile Include="Services\XMLDataWriterBase.cs" />
     <Compile Include="Customeize.cs">

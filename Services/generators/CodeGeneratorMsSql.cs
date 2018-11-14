@@ -1,13 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DB2Code.Services.generators
+﻿namespace DB2Code.Services.generators
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class CodeGeneratorMsSql : CodeGeneratorBase
     {
-        public override AccessDataBaseType DataBaseType => throw new NotImplementedException();
+        public override AccessDataBaseType DataBaseType
+        {
+            get { return AccessDataBaseType.MsSql; }
+        }
+
+        public CodeGeneratorMsSql(GeneratorOption option) : base(option)
+        { }
     }
 }
