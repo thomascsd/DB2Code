@@ -1,3 +1,4 @@
+using DB2Code.Services.generators;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,7 +10,7 @@ namespace DB2Code
 {
     public partial class Form1 : Form
     {
-        protected CodeBase cd;
+        protected CodeGeneratorBase cd;
         protected LogWriter Writer;
 
         public Form1()
@@ -76,7 +77,7 @@ namespace DB2Code
             {
                 ret = string.Empty;
 
-                this.cd.MethodContent(methodType);
+                this.cd.MethodContent(methodType, ckbObject.Checked);
 
                 switch (cbxLang.SelectedItem.ToString())
                 {
@@ -98,10 +99,9 @@ namespace DB2Code
         /// </summary>
         protected void GetCodeBase()
         {
-            string constring = txtConstring.Text;
-            string tableName = txtName.Text;
             string keyName = string.Empty;
             List<string> keys = new List<string>();
+            GeneratorOption option;
 
             //¥D¯Á¤Þ­ÈªºColumn Name
             if (!string.IsNullOrEmpty(txtSchemaKeyName.Text))
@@ -113,14 +113,9 @@ namespace DB2Code
                 switch (cbDbType.SelectedItem.ToString())
                 {
                     case "MSSQL":
-                        keyName = "IsKey";
-                        break;
-
                     case "Access":
-                        keyName = "IsKey";
-                        break;
-
                     default:
+                        keyName = "IsKey";
                         break;
                 }
             }
@@ -130,14 +125,22 @@ namespace DB2Code
                 keys.Add(key.ToString());
             }
 
+            option = new GeneratorOption
+            {
+                Connectionstring = txtConstring.Text,
+                TableName = txtName.Text,
+                SchemaKeyName = keyName,
+                KeyColunmNames = keys
+            };
+
             switch (cbDbType.SelectedItem.ToString())
             {
                 case "MSSQL":
-                    this.cd = new CodeMSSQL(constring, tableName, keyName, keys.ToArray());
+                    this.cd = new CodeGeneratorMsSql(option);
                     break;
 
                 case "Access":
-                    this.cd = new CodeAccess(constring, tableName, keyName, keys.ToArray());
+                    this.cd = new CodeGeneratorAccess(option);
                     break;
 
                 default:
@@ -212,7 +215,5 @@ namespace DB2Code
         }
 
         #endregion
-
-
     }
 }
