@@ -1,3 +1,4 @@
+using DB2Code.Services.generators;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,8 +10,8 @@ namespace DB2Code
 {
     public partial class Customeize : Form
     {
-        private DataTable Dt = new DataTable();
-        private CodeBase Cd;
+        private DataTable m_DataTable = new DataTable();
+        private CodeGeneratorBase m_CodeGenerator;
         private LogWriter Writer;
 
         public Customeize()
@@ -35,9 +36,11 @@ namespace DB2Code
 
         private void WriteHistoryList()
         {
-            LogData data = new LogData();
-            data.ConnectionString = txtConstring.Text;
-            data.TableName = txtName.Text;
+            LogData data = new LogData
+            {
+                ConnectionString = txtConstring.Text,
+                TableName = txtName.Text
+            };
             this.Writer.Add(data);
         }
 
@@ -71,7 +74,7 @@ namespace DB2Code
 
             //比對所選擇的ColumnName與DataTable中ColumnName是否相同
             //相同的話，用List.Add來加入DataType及IsKeyColumn
-            foreach (DataRow row in this.Dt.Rows)
+            foreach (DataRow row in this.m_DataTable.Rows)
             {
                 foreach (string name in columnName)
                 {
@@ -87,16 +90,16 @@ namespace DB2Code
             dt = this.CreateDataTable(columnName, dataType, IsKey);
 
             //產生程式碼
-            this.Cd.MethodContent(dt, methodType);
+            this.m_CodeGenerator.MethodContent(dt, methodType, ckbObject.Checked);
 
             switch (cbxLang.SelectedItem.ToString())
             {
                 case "C#":
-                    ret = this.Cd.GenerateMethodCode(LanguageType.CSharp);
+                    ret = this.m_CodeGenerator.GenerateMethodCode(LanguageType.CSharp);
                     break;
 
                 case "VB":
-                    ret = this.Cd.GenerateMethodCode(LanguageType.VB);
+                    ret = this.m_CodeGenerator.GenerateMethodCode(LanguageType.VB);
                     break;
             }
             txtContent.Text = ret;
@@ -108,10 +111,10 @@ namespace DB2Code
         private void btnProduce_Click(object sender, EventArgs e)
         {
             this.GetCodeBase();
-            this.Dt = this.Cd.DataSource;
+            this.m_DataTable = this.m_CodeGenerator.DataSource;
 
             ckbData.Items.Clear();
-            foreach (DataRow row in this.Dt.Rows)
+            foreach (DataRow row in this.m_DataTable.Rows)
             {
                 ckbData.Items.Add(row["ColumnName"]);
             }
@@ -149,7 +152,7 @@ namespace DB2Code
             StringBuilder sb = new StringBuilder();
             StringWriter sw = new StringWriter(sb);
 
-            this.Dt.WriteXml(sw);
+            this.m_DataTable.WriteXml(sw);
 
             txtXml.Text = sb.ToString();
         }
@@ -162,23 +165,30 @@ namespace DB2Code
             string constring = txtConstring.Text;
             string tableName = txtName.Text;
             List<string> keys = new List<string>();
+            GeneratorOption option;
 
             foreach (object key in clbKeys.CheckedItems)
             {
                 keys.Add(key.ToString());
             }
 
+            option = new GeneratorOption
+            {
+                ConnectionString = txtConstring.Text,
+                TableName = txtName.Text,
+                SchemaKeyName = "IsKeyColumn",
+                KeyColunmNames = keys
+            };
+
             switch (cbDbType.SelectedItem.ToString())
             {
+                default:
                 case "MSSQL":
-                    this.Cd = new CodeMSSQL(constring, tableName, "IsKeyColumn", keys.ToArray());
+                    this.m_CodeGenerator = new CodeGeneratorMsSql(option);
                     break;
 
                 case "Access":
-                    this.Cd = new CodeAccess(constring, tableName, "IsKeyColumn", keys.ToArray());
-                    break;
-
-                default:
+                    this.m_CodeGenerator = new CodeGeneratorAccess(option);
                     break;
             }
         }
@@ -200,19 +210,10 @@ namespace DB2Code
             {
                 switch (cbDbType.SelectedItem.ToString())
                 {
-                    case "DB2":
-                        keyName = "IsKeyColumn";
-                        break;
-
                     case "MSSQL":
-                        keyName = "IsKey";
-                        break;
-
                     case "Access":
-                        keyName = "IsKey";
-                        break;
-
                     default:
+                        keyName = "IsKey";
                         break;
                 }
             }
@@ -222,13 +223,13 @@ namespace DB2Code
 
         private void btnCreateData_Click(object sender, EventArgs e)
         {
-            DataTable dt = this.Cd.DataSource;
+            DataTable dt = this.m_CodeGenerator.DataSource;
             string columnName;
 
             if (dt == null)
             {
                 this.GetCodeBase();
-                dt = this.Cd.DataSource;
+                dt = this.m_CodeGenerator.DataSource;
             }
 
             clbKeys.Items.Clear();
@@ -258,7 +259,7 @@ namespace DB2Code
             txtName.AutoCompleteCustomSource = acsName;
         }
 
-        #region"Key Event"
+        #region Key Event
 
         private void txtContent_KeyDown(object sender, KeyEventArgs e)
         {

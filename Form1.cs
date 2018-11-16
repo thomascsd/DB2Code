@@ -10,7 +10,7 @@ namespace DB2Code
 {
     public partial class Form1 : Form
     {
-        protected CodeGeneratorBase cd;
+        protected CodeGeneratorBase CodeGenerator;
         protected LogWriter Writer;
 
         public Form1()
@@ -77,16 +77,16 @@ namespace DB2Code
             {
                 ret = string.Empty;
 
-                this.cd.MethodContent(methodType, ckbObject.Checked);
+                this.CodeGenerator.MethodContent(methodType, ckbObject.Checked);
 
                 switch (cbxLang.SelectedItem.ToString())
                 {
                     case "C#":
-                        ret = cd.GenerateMethodCode(LanguageType.CSharp);
+                        ret = CodeGenerator.GenerateMethodCode(LanguageType.CSharp);
                         break;
 
                     case "VB":
-                        ret = cd.GenerateMethodCode(LanguageType.VB);
+                        ret = CodeGenerator.GenerateMethodCode(LanguageType.VB);
                         break;
                 }
 
@@ -127,7 +127,7 @@ namespace DB2Code
 
             option = new GeneratorOption
             {
-                Connectionstring = txtConstring.Text,
+                ConnectionString = txtConstring.Text,
                 TableName = txtName.Text,
                 SchemaKeyName = keyName,
                 KeyColunmNames = keys
@@ -136,11 +136,11 @@ namespace DB2Code
             switch (cbDbType.SelectedItem.ToString())
             {
                 case "MSSQL":
-                    this.cd = new CodeGeneratorMsSql(option);
+                    this.CodeGenerator = new CodeGeneratorMsSql(option);
                     break;
 
                 case "Access":
-                    this.cd = new CodeGeneratorAccess(option);
+                    this.CodeGenerator = new CodeGeneratorAccess(option);
                     break;
 
                 default:
@@ -153,7 +153,7 @@ namespace DB2Code
             StringBuilder sb = new StringBuilder();
             StringWriter sw = new StringWriter(sb);
 
-            this.cd.DataSource.WriteXml(sw);
+            this.CodeGenerator.DataSource.WriteXml(sw);
 
             txtXml.Text = sb.ToString();
         }
@@ -183,13 +183,13 @@ namespace DB2Code
 
         private void btnCreateData_Click(object sender, EventArgs e)
         {
-            DataTable dt = this.cd.DataSource;
+            DataTable dt = this.CodeGenerator.DataSource;
             string columnName;
 
             if (dt == null)
             {
                 this.GetCodeBase();
-                dt = this.cd.DataSource;
+                dt = this.CodeGenerator.DataSource;
             }
 
             clbkeys.Items.Clear();

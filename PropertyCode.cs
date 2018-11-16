@@ -1,10 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 
 namespace DB2Code
 {
@@ -20,22 +14,23 @@ namespace DB2Code
             string code = string.Empty;
             txtContent.Text = string.Empty;
 
-            this.cd.CreateDataProperty();
+            this.CodeGenerator.CreateDataProperty();
 
             switch (cbxLang.SelectedItem.ToString())
             {
                 case "C#":
-                    code = this.cd.GenerateClassCode(LanguageType.CSharp);
+                    code = this.CodeGenerator.GenerateClassCode(LanguageType.CSharp);
                     break;
+
                 case "VB":
-                    code = this.cd.GenerateClassCode(LanguageType.VB);
+                    code = this.CodeGenerator.GenerateClassCode(LanguageType.VB);
                     break;
+
                 default:
                     break;
             }
 
             txtContent.Text = code;
-
         }
 
         private void PropertyCode_Load(object sender, EventArgs e)
@@ -47,7 +42,5 @@ namespace DB2Code
             this.Width = base.Width;
             this.Height = base.Height;
         }
-
     }
 }
-

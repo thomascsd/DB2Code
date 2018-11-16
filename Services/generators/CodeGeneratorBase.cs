@@ -62,15 +62,15 @@ namespace DB2Code.Services.generators
             {
                 default:
                 case AccessDataBaseType.MsSql:
-                    Idb = new DataToolMSSQL(this.m_Option.Connectionstring);
+                    Idb = new DataToolMSSQL(this.m_Option.ConnectionString);
                     break;
 
                 case AccessDataBaseType.Access:
-                    Idb = new DataToolAccess(this.m_Option.Connectionstring);
+                    Idb = new DataToolAccess(this.m_Option.ConnectionString);
                     break;
 
                 case AccessDataBaseType.ODBC:
-                    Idb = new DataToolODBC(this.m_Option.Connectionstring);
+                    Idb = new DataToolODBC(this.m_Option.ConnectionString);
                     break;
             }
 

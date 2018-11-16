@@ -10,7 +10,7 @@ namespace DB2Code.Services.generators
         /// <summary>
         /// 連線字串
         /// </summary>
-        public string Connectionstring { get; set; }
+        public string ConnectionString { get; set; }
 
         /// <summary>
         ///
