@@ -74,6 +74,12 @@
     <Compile Include="BaseForm.Designer.cs">
       <DependentUpon>BaseForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ParamsEditor.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ParamsEditor.Designer.cs">
+      <DependentUpon>ParamsEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\generators\CodeGeneratorAccess.cs" />
     <Compile Include="Services\generators\CodeGeneratorBase.cs" />
     <Compile Include="Services\Emun.cs" />
@@ -111,6 +117,9 @@
     <EmbeddedResource Include="BaseForm.resx">
       <SubType>Designer</SubType>
       <DependentUpon>BaseForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Controls\ParamsEditor.resx">
+      <DependentUpon>ParamsEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Customeize.resx">
       <SubType>Designer</SubType>

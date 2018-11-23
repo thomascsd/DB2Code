@@ -11,11 +11,10 @@ namespace DB2Code
     public partial class Form1 : Form
     {
         protected CodeGeneratorBase CodeGenerator;
-        protected LogWriter Writer;
 
         public Form1()
         {
-            this.Writer = new LogWriter();
+          
             InitializeComponent();
         }
 
@@ -25,7 +24,7 @@ namespace DB2Code
             {
                 this.GetCodeBase();
                 this.CreateCode();
-                this.SaveHistoryList();
+                //this.SaveHistoryList();
             }
             catch (Exception ex)
             {
@@ -33,18 +32,7 @@ namespace DB2Code
             }
         }
 
-        /// <summary>
-        /// 儲存歷史資料
-        /// </summary>
-        protected void SaveHistoryList()
-        {
-            LogData data = new LogData
-            {
-                ConnectionString = txtConstring.Text,
-                TableName = txtName.Text
-            };
-            this.Writer.Add(data);
-        }
+   
 
         /// <summary>
         /// 產生程式碼
@@ -160,21 +148,7 @@ namespace DB2Code
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            List<XmlData> datas;
-            datas = this.Writer.LoadData();
-            AutoCompleteStringCollection acsConn = new AutoCompleteStringCollection();
-            AutoCompleteStringCollection acsName = new AutoCompleteStringCollection();
 
-            foreach (XmlData xmlData in datas)
-            {
-                LogData data = xmlData as LogData;
-
-                acsConn.Add(data.ConnectionString);
-                acsName.Add(data.TableName);
-            }
-
-            txtConstring.AutoCompleteCustomSource = acsConn;
-            txtName.AutoCompleteCustomSource = acsName;
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

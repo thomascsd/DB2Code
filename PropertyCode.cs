@@ -2,7 +2,7 @@ using System;
 
 namespace DB2Code
 {
-    public partial class PropertyCode : DB2Code.Form1
+    public partial class PropertyCode : Form1
     {
         public PropertyCode()
         {
