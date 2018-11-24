@@ -64,6 +64,7 @@ namespace DB2Code
         {
             this.CreateGenerator();
             this.CreateProperty();
+            paramsEditor1.SaveHistoryList();
         }
     }
 }

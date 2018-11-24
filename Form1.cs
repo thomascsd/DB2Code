@@ -23,6 +23,7 @@ namespace DB2Code
             {
                 this.GetCodeBase();
                 this.CreateCode();
+                paramsEditor1.SaveHistoryList();
             }
             catch (Exception ex)
             {
