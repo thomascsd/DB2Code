@@ -12,11 +12,9 @@ namespace DB2Code
     {
         private DataTable m_DataTable = new DataTable();
         private CodeGeneratorBase m_CodeGenerator;
-        private LogWriter Writer;
 
         public Customeize()
         {
-            this.Writer = new LogWriter();
             InitializeComponent();
         }
 
@@ -26,22 +24,11 @@ namespace DB2Code
             {
                 this.GetCodeBase();
                 this.CreateCode();
-                this.WriteHistoryList();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-        }
-
-        private void WriteHistoryList()
-        {
-            LogData data = new LogData
-            {
-                ConnectionString = txtConstring.Text,
-                TableName = txtName.Text
-            };
-            this.Writer.Add(data);
         }
 
         private void CreateCode()
@@ -50,10 +37,9 @@ namespace DB2Code
             List<string> dataType = new List<string>();
             List<bool> IsKey = new List<bool>();
             DataTable dt;
-            string ret, keyName, tableName;
+            string ret, keyName;
             MethodType methodType = MethodType.Insert;
 
-            tableName = txtName.Text;
             keyName = this.GetKeyColumnName();
             ret = string.Empty;
 
@@ -92,13 +78,13 @@ namespace DB2Code
             //產生程式碼
             this.m_CodeGenerator.MethodContent(dt, methodType, ckbObject.Checked);
 
-            switch (cbxLang.SelectedItem.ToString())
+            switch (paramsEditor1.CurrentLanguage)
             {
                 case "C#":
                     ret = this.m_CodeGenerator.GenerateMethodCode(LanguageType.CSharp);
                     break;
 
-                case "VB":
+                case "VB.NET":
                     ret = this.m_CodeGenerator.GenerateMethodCode(LanguageType.VB);
                     break;
             }
@@ -162,8 +148,6 @@ namespace DB2Code
         /// </summary>
         private void GetCodeBase()
         {
-            string constring = txtConstring.Text;
-            string tableName = txtName.Text;
             List<string> keys = new List<string>();
             GeneratorOption option;
 
@@ -174,13 +158,13 @@ namespace DB2Code
 
             option = new GeneratorOption
             {
-                ConnectionString = txtConstring.Text,
-                TableName = txtName.Text,
+                ConnectionString = paramsEditor1.CurrentConnectionString,
+                TableName = paramsEditor1.CurrentTableName,
                 SchemaKeyName = "IsKeyColumn",
                 KeyColunmNames = keys
             };
 
-            switch (cbDbType.SelectedItem.ToString())
+            switch (paramsEditor1.CurrentDbType)
             {
                 default:
                 case "MSSQL":
@@ -208,14 +192,7 @@ namespace DB2Code
             }
             else
             {
-                switch (cbDbType.SelectedItem.ToString())
-                {
-                    case "MSSQL":
-                    case "Access":
-                    default:
-                        keyName = "IsKey";
-                        break;
-                }
+                keyName = "IsKey";
             }
 
             return keyName;
@@ -242,21 +219,6 @@ namespace DB2Code
 
         private void Customeize_Load(object sender, EventArgs e)
         {
-            List<XmlData> datas;
-            datas = this.Writer.LoadData();
-            AutoCompleteStringCollection acsConn = new AutoCompleteStringCollection();
-            AutoCompleteStringCollection acsName = new AutoCompleteStringCollection();
-
-            foreach (XmlData xmlData in datas)
-            {
-                LogData data = xmlData as LogData;
-
-                acsConn.Add(data.ConnectionString);
-                acsName.Add(data.TableName);
-            }
-
-            txtConstring.AutoCompleteCustomSource = acsConn;
-            txtName.AutoCompleteCustomSource = acsName;
         }
 
         #region Key Event

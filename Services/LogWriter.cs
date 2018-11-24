@@ -20,7 +20,7 @@ namespace DB2Code
 
         protected override string FilePath
         {
-            get { return string.Empty; }
+            get { return "D:\\"; }
         }
 
         public override List<XmlData> LoadData()
@@ -30,10 +30,12 @@ namespace DB2Code
 
             foreach (DataRow row in this.mDs.Tables[0].Rows)
             {
-                data = new LogData();
-                data.ConnectionString = row["ConnectionString"].ToString();
-                data.Key = row["Key"].ToString();
-                data.TableName = row["TableName"].ToString();
+                data = new LogData
+                {
+                    ConnectionString = row["ConnectionString"].ToString(),
+                    Key = row["Key"].ToString(),
+                    TableName = row["TableName"].ToString()
+                };
 
                 datas.Add(data);
             }
@@ -48,10 +50,12 @@ namespace DB2Code
 
             if (dv.Count > 0)
             {
-                data = new LogData();
-                data.Key = dv[0]["Key"].ToString();
-                data.ConnectionString = dv[0]["ConnectionString"].ToString();
-                data.TableName = dv[0]["TableName"].ToString();
+                data = new LogData
+                {
+                    Key = dv[0]["Key"].ToString(),
+                    ConnectionString = dv[0]["ConnectionString"].ToString(),
+                    TableName = dv[0]["TableName"].ToString()
+                };
                 return data;
             }
 
@@ -100,20 +104,8 @@ namespace DB2Code
             set { mKey = value; }
         }
 
-        private string mConnectionString;
+        public string ConnectionString { get; set; }
 
-        public string ConnectionString
-        {
-            get { return mConnectionString; }
-            set { mConnectionString = value; }
-        }
-
-        private string mTableName;
-
-        public string TableName
-        {
-            get { return mTableName; }
-            set { mTableName = value; }
-        }
+        public string TableName { get; set; }
     }
 }

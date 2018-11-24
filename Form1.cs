@@ -10,11 +10,10 @@ namespace DB2Code
 {
     public partial class Form1 : Form
     {
-        protected CodeGeneratorBase CodeGenerator;
+        private CodeGeneratorBase m_CodeGenerator;
 
         public Form1()
         {
-          
             InitializeComponent();
         }
 
@@ -24,26 +23,20 @@ namespace DB2Code
             {
                 this.GetCodeBase();
                 this.CreateCode();
-                //this.SaveHistoryList();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(ex.ToString());
             }
         }
-
-   
 
         /// <summary>
         /// 產生程式碼
         /// </summary>
         protected virtual void CreateCode()
         {
-            string constring = txtConstring.Text;
-            string tableName = txtName.Text;
             string ret;
             MethodType methodType = MethodType.Insert;
-
             txtContent.Text = string.Empty;
 
             if (rbnInsert.Checked)
@@ -61,20 +54,21 @@ namespace DB2Code
                 methodType = MethodType.Select;
             }
 
-            if (constring != string.Empty && tableName != string.Empty)
+            if (!string.IsNullOrEmpty(paramsEditor1.CurrentConnectionString) &&
+                !string.IsNullOrEmpty(paramsEditor1.CurrentTableName))
             {
                 ret = string.Empty;
 
-                this.CodeGenerator.MethodContent(methodType, ckbObject.Checked);
+                this.m_CodeGenerator.MethodContent(methodType, ckbObject.Checked);
 
-                switch (cbxLang.SelectedItem.ToString())
+                switch (paramsEditor1.CurrentLanguage)
                 {
                     case "C#":
-                        ret = CodeGenerator.GenerateMethodCode(LanguageType.CSharp);
+                        ret = this.m_CodeGenerator.GenerateMethodCode(LanguageType.CSharp);
                         break;
 
-                    case "VB":
-                        ret = CodeGenerator.GenerateMethodCode(LanguageType.VB);
+                    case "VB.NET":
+                        ret = this.m_CodeGenerator.GenerateMethodCode(LanguageType.VB);
                         break;
                 }
 
@@ -98,14 +92,7 @@ namespace DB2Code
             }
             else
             {
-                switch (cbDbType.SelectedItem.ToString())
-                {
-                    case "MSSQL":
-                    case "Access":
-                    default:
-                        keyName = "IsKey";
-                        break;
-                }
+                keyName = "IsKey";
             }
             //自定的主索引值
             foreach (object key in clbkeys.CheckedItems)
@@ -115,23 +102,21 @@ namespace DB2Code
 
             option = new GeneratorOption
             {
-                ConnectionString = txtConstring.Text,
-                TableName = txtName.Text,
+                ConnectionString = paramsEditor1.CurrentConnectionString,
+                TableName = paramsEditor1.CurrentTableName,
                 SchemaKeyName = keyName,
                 KeyColunmNames = keys
             };
 
-            switch (cbDbType.SelectedItem.ToString())
+            switch (paramsEditor1.CurrentDbType)
             {
+                default:
                 case "MSSQL":
-                    this.CodeGenerator = new CodeGeneratorMsSql(option);
+                    this.m_CodeGenerator = new CodeGeneratorMsSql(option);
                     break;
 
                 case "Access":
-                    this.CodeGenerator = new CodeGeneratorAccess(option);
-                    break;
-
-                default:
+                    this.m_CodeGenerator = new CodeGeneratorAccess(option);
                     break;
             }
         }
@@ -141,14 +126,13 @@ namespace DB2Code
             StringBuilder sb = new StringBuilder();
             StringWriter sw = new StringWriter(sb);
 
-            this.CodeGenerator.DataSource.WriteXml(sw);
+            this.m_CodeGenerator.DataSource.WriteXml(sw);
 
             txtXml.Text = sb.ToString();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -157,13 +141,13 @@ namespace DB2Code
 
         private void btnCreateData_Click(object sender, EventArgs e)
         {
-            DataTable dt = this.CodeGenerator.DataSource;
+            DataTable dt = this.m_CodeGenerator.DataSource;
             string columnName;
 
             if (dt == null)
             {
                 this.GetCodeBase();
-                dt = this.CodeGenerator.DataSource;
+                dt = this.m_CodeGenerator.DataSource;
             }
 
             clbkeys.Items.Clear();

@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace DB2Code.Controls
@@ -18,7 +12,7 @@ namespace DB2Code.Controls
         {
             get
             {
-                return cbConnectionString.SelectedText;
+                return cbConnectionString.Text;
             }
         }
 
@@ -27,6 +21,40 @@ namespace DB2Code.Controls
             get
             {
                 return txtTableName.Text;
+            }
+        }
+
+        public string CurrentDbType
+        {
+            get
+            {
+                if (rbnMsSql.Checked)
+                {
+                    return rbnMsSql.Text;
+                }
+                if (rbnAccess.Checked)
+                {
+                    return rbnAccess.Text;
+                }
+
+                return rbnMsSql.Text;
+            }
+        }
+
+        public string CurrentLanguage
+        {
+            get
+            {
+                if (rbnCSharp.Checked)
+                {
+                    return rbnCSharp.Text;
+                }
+                if (rbnVb.Checked)
+                {
+                    return rbnVb.Text;
+                }
+
+                return rbnCSharp.Text;
             }
         }
 
@@ -47,7 +75,7 @@ namespace DB2Code.Controls
             foreach (XmlData xmlData in datas)
             {
                 LogData logData = xmlData as LogData;
-                
+
                 conns.Add(logData.ConnectionString);
                 acsName.Add(logData.TableName);
             }
@@ -68,7 +96,5 @@ namespace DB2Code.Controls
             };
             this.m_Writer.Add(data);
         }
-
-
     }
 }

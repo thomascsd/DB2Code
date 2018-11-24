@@ -104,7 +104,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(36, 124);
+            this.label6.Location = new System.Drawing.Point(36, 147);
             this.label6.Margin = new System.Windows.Forms.Padding(7, 0, 7, 0);
             this.label6.Name = "label6";
             this.label6.Padding = new System.Windows.Forms.Padding(5, 11, 5, 4);
@@ -156,11 +156,10 @@
             // 
             // panel1
             // 
-            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.rbnCSharp);
             this.panel1.Controls.Add(this.rbnVb);
-            this.panel1.Location = new System.Drawing.Point(1141, 88);
+            this.panel1.Location = new System.Drawing.Point(1070, 112);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(361, 100);
             this.panel1.TabIndex = 27;
@@ -170,7 +169,7 @@
             this.panel2.Controls.Add(this.rbnAccess);
             this.panel2.Controls.Add(this.rbnMsSql);
             this.panel2.Controls.Add(this.label3);
-            this.panel2.Location = new System.Drawing.Point(549, 88);
+            this.panel2.Location = new System.Drawing.Point(549, 112);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(484, 100);
             this.panel2.TabIndex = 28;
@@ -189,7 +188,7 @@
             // 
             this.txtTableName.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.txtTableName.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.CustomSource;
-            this.txtTableName.Location = new System.Drawing.Point(207, 126);
+            this.txtTableName.Location = new System.Drawing.Point(207, 149);
             this.txtTableName.Margin = new System.Windows.Forms.Padding(7);
             this.txtTableName.Name = "txtTableName";
             this.txtTableName.Size = new System.Drawing.Size(271, 40);
@@ -208,7 +207,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.label2);
             this.Name = "ParamsEditor";
-            this.Size = new System.Drawing.Size(1544, 241);
+            this.Size = new System.Drawing.Size(1544, 284);
             this.Load += new System.EventHandler(this.ParamsEditor_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
